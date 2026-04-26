@@ -29,9 +29,9 @@ It is an **AI agent exposed via API** that:
 - Persona-based UX analysis
 - Identification of conversion issues
 - Suggested improvements
-- Rewritten hero section (conversion-optimized)
+- Rewritten hero section for the entry page (conversion-optimized)
 - Simple scoring system (0–100)
-- Optional agent execution logs
+- Agent execution logs
 
 ---
 
@@ -39,7 +39,7 @@ It is an **AI agent exposed via API** that:
 
 ### Backend
 - Node.js (Express) OR Python (FastAPI)
-- LLM API (OpenAI / Claude via TokenRouter)
+- LLM API (Euristic for now, implementation of OpenAI 4.1 mini pending)
 - Native fetch (no heavy scraping libraries required)
 
 ### Frontend (minimal)
@@ -244,96 +244,131 @@ When user clicks "Analyze":
 
 ---
 
-## Agent Framing (Important)
+## Example Execution
 
-The system should behave like an autonomous agent:
+Input
+* URL: [https://verizon ](https://www.verizon.com/)
+* Persona: "Person willing to buy an iPhone 16"
+* Page depth: 4
 
-* Display execution logs
-* Use language like:
-
-  * "Analyzing..."
-  * "Simulating user..."
-  * "Generating report..."
-
----
-
-## Optional: AgentHansa Integration
-
-(Not required but bonus)
-
-### Agent Definition
-
-* Name: FunnelScan Agent
-* Description: AI agent that performs CRO audits on websites
-
-### API Endpoint
-
-Expose:
-
+Result JSON:
 ```
-POST /analyze
+{
+  "score": 72,
+  "summary": "FunnelScan traversed the requested funnel path and estimated where users are most likely to drop, with step-by-step friction signals and recommendations.",
+  "funnel": {
+    "requestedDepth": 3,
+    "analyzedSteps": 2,
+    "steps": [
+      {
+        "step": 1,
+        "stepType": "checkout",
+        "url": "https://www.verizon.com/",
+        "title": "Verizon: Wireless, Internet, TV and Phone Services | Official Site",
+        "pageScore": 86,
+        "estimatedExitRate": 0.136,
+        "retainedProbability": 0.864,
+        "painPoints": [
+          {
+            "title": "Persona alignment can be tighter",
+            "impact": "Medium",
+            "recommendation": "Reflect concrete outcomes that matter to a Person willing to buy an iPhone 17 earlier in the page."
+          }
+        ]
+      },
+      {
+        "step": 2,
+        "stepType": "product",
+        "url": "https://www.verizon.com/products-perks/perks/",
+        "title": "Plan perks for myPlan and myHome | Verizon",
+        "pageScore": 58,
+        "estimatedExitRate": 0.288,
+        "retainedProbability": 0.615,
+        "painPoints": [
+          {
+            "title": "Weak primary CTA",
+            "impact": "High",
+            "recommendation": "Add one prominent, action-oriented CTA above the fold."
+          },
+          {
+            "title": "Insufficient trust proof",
+            "impact": "Medium",
+            "recommendation": "Add social proof close to conversion points."
+          },
+          {
+            "title": "Risk-reversal signals missing",
+            "impact": "Medium",
+            "recommendation": "Reassure users with policy clarity and guarantees."
+          },
+          {
+            "title": "Persona alignment can be tighter",
+            "impact": "Medium",
+            "recommendation": "Reflect concrete outcomes that matter to a Person willing to buy an iPhone 17 earlier in the page."
+          }
+        ]
+      }
+    ],
+    "finalConversionProbability": 61.5,
+    "totalEstimatedExitRate": 38.5,
+    "overallRecommendations": [
+      "Tighten message match between each step so intent carries forward.",
+      "Reduce decision friction by keeping one clear CTA per step.",
+      "Add trust and risk-reversal cues before high-friction actions.",
+      "Use persona-specific benefit framing for Person willing to buy an iPhone 17 at every transition."
+    ]
+  },
+  "issues": [
+    {
+      "title": "[Step 1] Persona alignment can be tighter",
+      "description": "Reflect concrete outcomes that matter to a Person willing to buy an iPhone 17 earlier in the page.",
+      "impact": "Medium",
+      "suggestion": "Reflect concrete outcomes that matter to a Person willing to buy an iPhone 17 earlier in the page."
+    },
+    {
+      "title": "[Step 2] Weak primary CTA",
+      "description": "Add one prominent, action-oriented CTA above the fold.",
+      "impact": "High",
+      "suggestion": "Add one prominent, action-oriented CTA above the fold."
+    },
+    {
+      "title": "[Step 2] Insufficient trust proof",
+      "description": "Add social proof close to conversion points.",
+      "impact": "Medium",
+      "suggestion": "Add social proof close to conversion points."
+    }
+  ],
+  "improvements": [
+    "Instrument per-step analytics events to replace heuristic exit-rate estimates with real behavior.",
+    "Run A/B tests on the highest-exit step before broad redesign.",
+    "Shorten form length and number of decisions on conversion-critical pages."
+  ],
+  "rewrite": {
+    "headline": "Turn Verizon: Wireless, Internet, TV and Phone Services | Official Site into a stronger first impression",
+    "subheadline": "For Person willing to buy an iPhone 17: clarify the value proposition on https://www.verizon.com/ and guide users to the next step.",
+    "cta": "Start on This Page"
+  },
+  "input": {
+    "url": "https://www.verizon.com/",
+    "persona": "Person willing to buy an iPhone 17",
+    "depth": 3
+  },
+  "logs": [
+    "Agent started...",
+    "Simulating user persona: Person willing to buy an iPhone 17...",
+    "Requested funnel depth: 3 page(s).",
+    "Step 1: analyzing page https://www.verizon.com/",
+    "Step 1: fetching HTML for https://www.verizon.com/",
+    "Step 1: extracted content and discovered 164 candidate link(s).",
+    "Step 1: next best step selected -> https://www.verizon.com/products-perks/perks/",
+    "Step 2: analyzing page https://www.verizon.com/products-perks/perks/",
+    "Step 2: fetching HTML for https://www.verizon.com/products-perks/perks/",
+    "Step 2: extracted content and discovered 0 candidate link(s).",
+    "Step 2: no high-intent internal link found. Traversal complete.",
+    "Aggregating funnel pain points and conversion estimates...",
+    "Generating final funnel report..."
+  ]
+}
 ```
-
-### Example Service
-
-* Name: Website CRO Audit
-* Price: $50
-* Deliverable: Conversion audit report
-
----
-
-## Environment Variables
-
-```
-LLM_API_KEY=your_key_here
-PORT=3000
-```
-
----
-
-## Constraints
-
-* Must be buildable in 3–4 hours
-* Avoid complex crawling
-* Homepage analysis only
-* Focus on output quality over architecture
-
----
-
-## Success Criteria
-
-The project is successful if:
-
-* The agent works end-to-end
-* The output is clear and useful
-* The demo is visually understandable in <10 seconds
-* The value proposition is obvious
-
----
-
-## Demo Script (Reference)
-
-1. Input a real website
-2. Click analyze
-3. Show agent logs
-4. Display:
-
-   * Score
-   * Issues
-   * Improvements
-   * Rewritten hero
-5. Explain:
-   "This agent helps businesses identify and fix conversion problems automatically."
-
----
-
-## Future Extensions (Not for hackathon)
-
-* Multi-page crawling
-* Real user simulation
-* A/B testing suggestions
-* Integration with analytics tools
-* Continuous monitoring
 
 ---
 
