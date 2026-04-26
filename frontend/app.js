@@ -1,6 +1,8 @@
 const analyzeBtn = document.getElementById("analyzeBtn");
 const statusEl = document.getElementById("status");
 const resultEl = document.getElementById("result");
+const scoreGaugeEl = document.getElementById("scoreGauge");
+const scoreLabelEl = document.getElementById("scoreLabel");
 
 function setStatus(lines) {
   statusEl.textContent = lines.join("\n");
@@ -12,20 +14,54 @@ function createLi(text) {
   return li;
 }
 
-function formatIssue(issue) {
-  if (!issue || typeof issue !== "object") {
-    return "";
+function getImpactLevel(impact) {
+  const value = String(impact || "").toLowerCase();
+
+  if (value.includes("high") || value.includes("critical") || value.includes("severe")) {
+    return "high";
   }
 
-  const title = issue.title || issue.issue || issue.problem || "";
-  const impact = issue.impact || issue.severity || "";
-  const suggestion = issue.suggestion || issue.fix || issue.recommendation || issue.comment || "";
+  if (value.includes("medium") || value.includes("moderate")) {
+    return "medium";
+  }
 
-  const titlePart = title ? title.trim() : "";
-  const impactPart = impact ? ` (${String(impact).trim()})` : "";
-  const suggestionPart = suggestion ? `: ${String(suggestion).trim()}` : "";
+  return "low";
+}
 
-  return `${titlePart}${impactPart}${suggestionPart}`.trim();
+function formatIssue(issue) {
+  if (!issue || typeof issue !== "object") {
+    return { title: "", impact: "", suggestion: "" };
+  }
+
+  return {
+    title: issue.title || issue.issue || issue.problem || "Untitled issue",
+    impact: issue.impact || issue.severity || "Low",
+    suggestion: issue.suggestion || issue.fix || issue.recommendation || issue.comment || ""
+  };
+}
+
+function createIssueNode(issue) {
+  const { title, impact, suggestion } = formatIssue(issue);
+  const impactLevel = getImpactLevel(impact);
+
+  const item = document.createElement("li");
+  item.className = "issue-item";
+  const colorMap = {
+    high: "var(--danger)",
+    medium: "var(--warning)",
+    low: "var(--success)"
+  };
+  item.style.borderLeftColor = colorMap[impactLevel] || "var(--warning)";
+
+  item.innerHTML = `
+    <div class="issue-header">
+      <span class="issue-title">${title}</span>
+      <span class="impact-badge impact-${impactLevel}">${impact}</span>
+    </div>
+    <div class="issue-body">${suggestion || "No suggestion provided."}</div>
+  `;
+
+  return item;
 }
 
 function formatImprovement(item) {
@@ -48,6 +84,27 @@ function formatImprovement(item) {
       .filter((value) => typeof value === "string" && value.trim())
       .join(" — ")
   );
+}
+
+function updateGauge(score) {
+  const normalizedScore = Number.isFinite(score) ? Math.max(0, Math.min(100, score)) : 0;
+  const scorePct = Math.round(normalizedScore);
+
+  scoreGaugeEl.style.setProperty("--value", String(scorePct));
+
+  let color = "var(--danger)";
+  let label = "Needs Improvement";
+
+  if (scorePct >= 75) {
+    color = "var(--success)";
+    label = "Strong Conversion Foundation";
+  } else if (scorePct >= 50) {
+    color = "var(--warning)";
+    label = "Promising With Gaps";
+  }
+
+  scoreGaugeEl.style.setProperty("--gauge-color", color);
+  scoreLabelEl.textContent = label;
 }
 
 analyzeBtn.addEventListener("click", async () => {
@@ -77,16 +134,15 @@ analyzeBtn.addEventListener("click", async () => {
       throw new Error(data?.message || "Unknown error");
     }
 
-    document.getElementById("score").textContent = data.score;
+    const score = Number(data.score) || 0;
+    document.getElementById("score").textContent = score;
+    updateGauge(score);
     document.getElementById("summary").textContent = data.summary;
 
     const issuesEl = document.getElementById("issues");
     issuesEl.innerHTML = "";
     (data.issues || []).forEach((issue) => {
-      const issueText = formatIssue(issue);
-      if (issueText) {
-        issuesEl.appendChild(createLi(issueText));
-      }
+      issuesEl.appendChild(createIssueNode(issue));
     });
 
     const improvementsEl = document.getElementById("improvements");
@@ -98,9 +154,9 @@ analyzeBtn.addEventListener("click", async () => {
       }
     });
 
-    document.getElementById("headline").textContent = data.rewrite?.headline || "";
-    document.getElementById("subheadline").textContent = data.rewrite?.subheadline || "";
-    document.getElementById("cta").textContent = data.rewrite?.cta || "";
+    document.getElementById("headline").textContent = data.rewrite?.headline || "—";
+    document.getElementById("subheadline").textContent = data.rewrite?.subheadline || "—";
+    document.getElementById("cta").textContent = data.rewrite?.cta || "—";
 
     const logsEl = document.getElementById("logs");
     logsEl.innerHTML = "";

@@ -8,48 +8,72 @@
   </head>
   <body>
     <main class="container">
-      <h1>FunnelScan</h1>
-      <p class="subtitle">AI CRO Audit Agent</p>
+      <header class="page-header">
+        <div>
+          <h1>FunnelScan</h1>
+          <p class="subtitle">AI CRO Audit Agent</p>
+        </div>
+      </header>
 
       <section class="card form-card">
-        <label>
-          Website URL
-          <input id="url" type="url" placeholder="https://example.com" required />
-        </label>
+        <div class="field-grid">
+          <label>
+            Website URL
+            <input id="url" type="url" placeholder="https://example.com" required />
+          </label>
 
-        <label>
-          Persona
-          <input id="persona" type="text" placeholder="E-commerce shopper" />
-        </label>
+          <label>
+            Persona
+            <input id="persona" type="text" placeholder="E-commerce shopper" />
+          </label>
+        </div>
 
-        <button id="analyzeBtn">Analyze Website</button>
-        <pre id="status" class="status">Idle</pre>
+        <div class="form-actions">
+          <button id="analyzeBtn">Start Analysis</button>
+          <pre id="status" class="status">Idle</pre>
+        </div>
       </section>
 
-      <section id="result" class="card hidden">
-        <h2>Audit Report</h2>
-        <div class="score-wrap">
-          <span>Score</span>
-          <strong id="score">-</strong>
-        </div>
+      <section id="result" class="dashboard hidden">
+        <article class="card score-card">
+          <h2>FunnelScan Score</h2>
+          <div class="gauge-wrap">
+            <div class="gauge" id="scoreGauge" role="img" aria-label="Website score gauge">
+              <div class="gauge-inner">
+                <strong id="score">-</strong>
+                <span>/100</span>
+              </div>
+            </div>
+            <p id="scoreLabel" class="score-label">Awaiting report</p>
+          </div>
+          <p id="summary"></p>
+        </article>
 
-        <p id="summary"></p>
+        <article class="card issues-card">
+          <div class="section-title-row">
+            <h2>Top Conversion Issues</h2>
+          </div>
+          <ul id="issues" class="issue-list"></ul>
+        </article>
 
-        <h3>Top Issues</h3>
-        <ul id="issues"></ul>
+        <article class="card improvements-card">
+          <h2>AI Suggested Improvements</h2>
+          <ul id="improvements" class="improvement-list"></ul>
+        </article>
 
-        <h3>Improvements</h3>
-        <ul id="improvements"></ul>
+        <article class="card rewrite-card">
+          <h2>Hero Rewrite</h2>
+          <div class="rewrite">
+            <p><strong>Headline</strong><span id="headline"></span></p>
+            <p><strong>Subheadline</strong><span id="subheadline"></span></p>
+            <p><strong>CTA</strong><span id="cta"></span></p>
+          </div>
+        </article>
 
-        <h3>Hero Rewrite</h3>
-        <div class="rewrite">
-          <p><strong>Headline:</strong> <span id="headline"></span></p>
-          <p><strong>Subheadline:</strong> <span id="subheadline"></span></p>
-          <p><strong>CTA:</strong> <span id="cta"></span></p>
-        </div>
-
-        <h3>Agent Logs</h3>
-        <ul id="logs"></ul>
+        <article class="card logs-card">
+          <h2>Agent Logs</h2>
+          <ul id="logs" class="log-list"></ul>
+        </article>
       </section>
     </main>
 
