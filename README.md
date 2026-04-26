@@ -124,6 +124,7 @@ POST /analyze
     "requestedDepth": 4,
     "analyzedSteps": 4,
     "finalConversionProbability": 32.4,
+    "totalEstimatedExitRate": 67.6,
     "steps": [
       {
         "step": 1,

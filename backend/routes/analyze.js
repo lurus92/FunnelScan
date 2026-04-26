@@ -30,7 +30,8 @@ router.post("/analyze", async (req, res) => {
         break;
       }
 
-      logs.push(`Step ${step}: fetching ${currentUrl}`);
+      logs.push(`Step ${step}: analyzing page ${currentUrl}`);
+      logs.push(`Step ${step}: fetching HTML for ${currentUrl}`);
 
       let page;
       try {
@@ -48,7 +49,7 @@ router.post("/analyze", async (req, res) => {
 
       visited.add(currentUrl);
       pages.push(page);
-      logs.push(`Step ${step}: page analyzed (${page.links.length} candidate links discovered).`);
+      logs.push(`Step ${step}: extracted content and discovered ${page.links.length} candidate link(s).`);
 
       const rankedLinks = chooseTopLinks(page.links, currentUrl, visited);
       const next = rankedLinks[0];
@@ -70,6 +71,7 @@ router.post("/analyze", async (req, res) => {
     const report = await analyzeWithLLM({
       persona: normalizedPersona,
       pages,
+      requestedDepth,
       apiKey: process.env.LLM_API_KEY || process.env.OPENAI_API_KEY
     });
 

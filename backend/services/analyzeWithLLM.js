@@ -106,7 +106,7 @@ function chooseTopLinks(links, currentUrl, visited) {
   return ranked;
 }
 
-function buildHeuristicFunnel({ persona, pages }) {
+function buildHeuristicFunnel({ persona, pages, requestedDepth }) {
   let retained = 1;
 
   const funnelSteps = pages.map((page, index) => {
@@ -130,6 +130,7 @@ function buildHeuristicFunnel({ persona, pages }) {
   });
 
   const finalConversionProbability = Number((retained * 100).toFixed(1));
+  const totalEstimatedExitRate = Number((100 - finalConversionProbability).toFixed(1));
   const avgScore = funnelSteps.reduce((acc, step) => acc + step.pageScore, 0) / (funnelSteps.length || 1);
 
   return {
@@ -137,10 +138,11 @@ function buildHeuristicFunnel({ persona, pages }) {
     summary:
       "FunnelScan traversed the requested funnel path and estimated where users are most likely to drop, with step-by-step friction signals and recommendations.",
     funnel: {
-      requestedDepth: pages.length,
+      requestedDepth: requestedDepth || pages.length,
       analyzedSteps: funnelSteps.length,
       steps: funnelSteps,
       finalConversionProbability,
+      totalEstimatedExitRate,
       overallRecommendations: [
         "Tighten message match between each step so intent carries forward.",
         "Reduce decision friction by keeping one clear CTA per step.",
@@ -169,8 +171,8 @@ function buildHeuristicFunnel({ persona, pages }) {
   };
 }
 
-async function analyzeWithLLM({ persona, pages }) {
-  return buildHeuristicFunnel({ persona, pages });
+async function analyzeWithLLM({ persona, pages, requestedDepth }) {
+  return buildHeuristicFunnel({ persona, pages, requestedDepth });
 }
 
 module.exports = { analyzeWithLLM, chooseTopLinks };

@@ -116,6 +116,8 @@ function renderFunnelSteps(steps) {
     item.className = "funnel-step";
     const exitPct = Math.round((Number(step.estimatedExitRate) || 0) * 100);
 
+    const issues = (step.painPoints || []).map((point) => point.title).join(" • ") || "No issues detected";
+
     item.innerHTML = `
       <div class="row">
         <strong>Step ${step.step}: ${step.stepType || "page"}</strong>
@@ -123,6 +125,9 @@ function renderFunnelSteps(steps) {
       </div>
       <div class="row">
         <span>${step.url || ""}</span>
+      </div>
+      <div class="row issue-row">
+        <span>${issues}</span>
       </div>
       <div class="funnel-bar"><span style="width:${exitPct}%;"></span></div>
     `;
@@ -183,9 +188,17 @@ analyzeBtn.addEventListener("click", async () => {
     document.getElementById("cta").textContent = data.rewrite?.cta || "—";
 
     const finalProb = Number(data?.funnel?.finalConversionProbability);
+    const totalExitRate = Number(data?.funnel?.totalEstimatedExitRate);
+    const selectedDepth = Number(data?.input?.depth || data?.funnel?.requestedDepth);
+    document.getElementById("funnelDepthLabel").textContent = Number.isFinite(selectedDepth)
+      ? `Selected funnel depth: ${selectedDepth} page(s)`
+      : "Selected funnel depth: —";
     document.getElementById("conversionProb").textContent = Number.isFinite(finalProb)
       ? `Final conversion probability: ${finalProb}%`
       : "Final conversion probability: —";
+    document.getElementById("totalExitRate").textContent = Number.isFinite(totalExitRate)
+      ? `Total estimated exit rate: ${totalExitRate}%`
+      : "Total estimated exit rate: —";
     renderFunnelSteps(data?.funnel?.steps || []);
 
     const logsEl = document.getElementById("logs");

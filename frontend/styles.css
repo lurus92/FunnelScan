@@ -387,6 +387,13 @@ ul {
   font-size: 14px;
 }
 
+.funnel-step .issue-row {
+  justify-content: flex-start;
+  color: #334155;
+  font-size: 13px;
+  line-height: 1.35;
+}
+
 .funnel-bar {
   height: 10px;
   border-radius: 999px;
