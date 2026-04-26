@@ -55,6 +55,11 @@ button {
   cursor: pointer;
 }
 
+#copyReportBtn {
+  margin-top: 8px;
+  background: #111827;
+}
+
 button:disabled {
   background: #93c5fd;
   cursor: progress;

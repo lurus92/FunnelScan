@@ -18,6 +18,9 @@ Focus on:
 - Persuasiveness
 
 Return the output in JSON format with keys: score, summary, issues, improvements, rewrite.
+Also include:
+- action_plan: array of exactly 3 prioritized tasks with keys {priority, task, expected_impact, effort}
+- business_impact: one short paragraph explaining likely conversion impact in plain language.
 
 Website content:
 ${websiteText}`;
@@ -87,6 +90,28 @@ function heuristicAnalysis(persona, websiteText) {
       "Tighten copy and prioritize skim-friendly structure.",
       `Tailor benefits and objections for a ${persona}.`
     ],
+    action_plan: [
+      {
+        priority: 1,
+        task: "Clarify the hero headline and primary value proposition for first-time visitors.",
+        expected_impact: "High",
+        effort: "Low"
+      },
+      {
+        priority: 2,
+        task: "Make one primary CTA visually dominant above the fold.",
+        expected_impact: "High",
+        effort: "Low"
+      },
+      {
+        priority: 3,
+        task: "Add social proof (testimonials, logos, or metrics) near the hero.",
+        expected_impact: "Medium",
+        effort: "Medium"
+      }
+    ],
+    business_impact:
+      "These changes should reduce confusion during the first 10 seconds, increase trust, and improve the percentage of visitors who click a primary call-to-action.",
     rewrite: {
       headline: "Convert more visitors with a clearer homepage in days",
       subheadline:
@@ -137,6 +162,8 @@ function normalizeResult(raw) {
     summary: raw?.summary || "No summary provided.",
     issues: Array.isArray(raw?.issues) ? raw.issues.slice(0, 5) : [],
     improvements: Array.isArray(raw?.improvements) ? raw.improvements : [],
+    action_plan: Array.isArray(raw?.action_plan) ? raw.action_plan.slice(0, 3) : [],
+    business_impact: raw?.business_impact || "",
     rewrite: {
       headline: raw?.rewrite?.headline || "Improve conversion clarity on your homepage",
       subheadline: raw?.rewrite?.subheadline || "Reduce friction with clearer copy and stronger calls-to-action.",
