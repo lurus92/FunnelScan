@@ -17,15 +17,15 @@ FunnelScan is NOT a full SaaS platform.
 It is an **AI agent exposed via API** that:
 
 1. Accepts a website URL and a user persona
-2. Fetches the website content (homepage only)
-3. Analyzes it using an LLM
-4. Returns a structured CRO audit report
+2. Traverses multiple funnel pages from that URL
+3. Scores each step and estimates exit rates
+4. Returns a structured CRO + funnel JSON report
 
 ---
 
 ## Key Features
 
-- Website content extraction (homepage only)
+- Multi-page funnel traversal (depth controlled)
 - Persona-based UX analysis
 - Identification of conversion issues
 - Suggested improvements
@@ -91,7 +91,8 @@ POST /analyze
 ```json
 {
   "url": "https://example.com",
-  "persona": "E-commerce shopper"
+  "persona": "E-commerce shopper",
+  "depth": 4
 }
 ````
 
@@ -117,6 +118,32 @@ POST /analyze
     "headline": "Grow your business faster with AI-powered tools",
     "subheadline": "Simple pricing. Trusted by thousands.",
     "cta": "Start Free Trial"
+  },
+
+  "funnel": {
+    "requestedDepth": 4,
+    "analyzedSteps": 4,
+    "finalConversionProbability": 32.4,
+    "steps": [
+      {
+        "step": 1,
+        "stepType": "landing",
+        "url": "https://example.com",
+        "pageScore": 68,
+        "estimatedExitRate": 0.24,
+        "retainedProbability": 0.76,
+        "painPoints": [
+          {
+            "title": "Weak primary CTA",
+            "impact": "High",
+            "recommendation": "Add one prominent CTA above the fold."
+          }
+        ]
+      }
+    ],
+    "overallRecommendations": [
+      "Tighten message match between each step"
+    ]
   },
   "logs": [
     "Fetching website content...",

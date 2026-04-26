@@ -355,3 +355,47 @@ ul {
     grid-row: auto;
   }
 }
+
+.funnel-card {
+  grid-column: 2 / span 2;
+  grid-row: 3;
+}
+
+.conversion-probability {
+  margin-top: 0;
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.funnel-list {
+  display: grid;
+  gap: 10px;
+}
+
+.funnel-step {
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 10px;
+  background: white;
+}
+
+.funnel-step .row {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 6px;
+  font-size: 14px;
+}
+
+.funnel-bar {
+  height: 10px;
+  border-radius: 999px;
+  background: #e2e8f0;
+  overflow: hidden;
+}
+
+.funnel-bar > span {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, #f97316 0%, #ef4444 100%);
+}

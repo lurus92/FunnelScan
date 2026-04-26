@@ -26,6 +26,11 @@
             Persona
             <input id="persona" type="text" placeholder="E-commerce shopper" />
           </label>
+
+          <label>
+            Funnel Depth (pages)
+            <input id="depth" type="number" min="1" max="8" value="3" />
+          </label>
         </div>
 
         <div class="form-actions">
@@ -57,6 +62,12 @@
         <article class="card improvements-card deferred-card hidden">
           <h2>AI Suggested Improvements</h2>
           <ul id="improvements" class="improvement-list"></ul>
+        </article>
+
+        <article class="card funnel-card deferred-card hidden">
+          <h2>Funnel Visualization</h2>
+          <p id="conversionProb" class="conversion-probability">Final conversion probability: —</p>
+          <ul id="funnelSteps" class="funnel-list"></ul>
         </article>
 
         <article class="card rewrite-card deferred-card hidden">

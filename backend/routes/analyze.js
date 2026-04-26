@@ -1,43 +1,87 @@
 const express = require("express");
 const { fetchWebsite } = require("../services/fetchWebsite");
-const { analyzeWithLLM } = require("../services/analyzeWithLLM");
+const { analyzeWithLLM, chooseTopLinks } = require("../services/analyzeWithLLM");
 
 const router = express.Router();
 
 router.post("/analyze", async (req, res) => {
-  const { url, persona } = req.body || {};
+  const { url, persona, depth } = req.body || {};
 
   if (!url || typeof url !== "string") {
     return res.status(400).json({ error: "A valid 'url' is required." });
   }
 
   const normalizedPersona = typeof persona === "string" && persona.trim() ? persona.trim() : "General website visitor";
-  const logs = ["Agent started...", `Simulating user persona: ${normalizedPersona}...`];
+  const requestedDepth = Math.max(1, Math.min(8, Number(depth) || 3));
+  const logs = [
+    "Agent started...",
+    `Simulating user persona: ${normalizedPersona}...`,
+    `Requested funnel depth: ${requestedDepth} page(s).`
+  ];
 
   try {
-    let websiteText;
+    const visited = new Set();
+    const pages = [];
+    let currentUrl = url;
 
-    logs.push("Fetching website content...");
-    try {
-      websiteText = await fetchWebsite(url);
-      logs.push("Website content fetched successfully.");
-    } catch (fetchError) {
-      logs.push(`Fetch warning: ${fetchError.message}`);
-      logs.push("Continuing with limited synthetic page context...");
-      websiteText = `Homepage content could not be fetched directly. Analyze likely conversion friction for this website URL: ${url}`;
+    for (let step = 1; step <= requestedDepth; step += 1) {
+      if (!currentUrl || visited.has(currentUrl)) {
+        logs.push(`Step ${step}: no eligible next page found. Stopping traversal.`);
+        break;
+      }
+
+      logs.push(`Step ${step}: fetching ${currentUrl}`);
+
+      let page;
+      try {
+        page = await fetchWebsite(currentUrl);
+      } catch (fetchError) {
+        logs.push(`Step ${step}: fetch warning (${fetchError.message}).`);
+        page = {
+          url: currentUrl,
+          title: `Step ${step}`,
+          text: `Could not fetch live page content for ${currentUrl}. Infer likely conversion friction for this step in the funnel.`,
+          links: []
+        };
+        logs.push(`Step ${step}: using synthetic page context.`);
+      }
+
+      visited.add(currentUrl);
+      pages.push(page);
+      logs.push(`Step ${step}: page analyzed (${page.links.length} candidate links discovered).`);
+
+      const rankedLinks = chooseTopLinks(page.links, currentUrl, visited);
+      const next = rankedLinks[0];
+
+      if (!next) {
+        logs.push(`Step ${step}: no high-intent internal link found. Traversal complete.`);
+        break;
+      }
+
+      currentUrl = next.href;
+      logs.push(`Step ${step}: next best step selected -> ${currentUrl}`);
     }
 
-    logs.push("Analyzing UX and conversion flow...");
+    if (!pages.length) {
+      throw new Error("No pages were fetched successfully.");
+    }
+
+    logs.push("Aggregating funnel pain points and conversion estimates...");
     const report = await analyzeWithLLM({
       persona: normalizedPersona,
-      websiteText,
+      pages,
       apiKey: process.env.LLM_API_KEY || process.env.OPENAI_API_KEY
     });
 
-    logs.push("Generating final report...");
+    logs.push("Generating final funnel report...");
 
     return res.json({
       ...report,
+      input: {
+        url,
+        persona: normalizedPersona,
+        depth: requestedDepth
+      },
       logs
     });
   } catch (error) {

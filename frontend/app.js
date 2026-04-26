@@ -64,13 +64,8 @@ function createIssueNode(issue) {
 }
 
 function formatImprovement(item) {
-  if (typeof item === "string") {
-    return item;
-  }
-
-  if (!item || typeof item !== "object") {
-    return "";
-  }
+  if (typeof item === "string") return item;
+  if (!item || typeof item !== "object") return "";
 
   return (
     item.text ||
@@ -112,11 +107,36 @@ function setDeferredVisibility(visible) {
   });
 }
 
+function renderFunnelSteps(steps) {
+  const listEl = document.getElementById("funnelSteps");
+  listEl.innerHTML = "";
+
+  (steps || []).forEach((step) => {
+    const item = document.createElement("li");
+    item.className = "funnel-step";
+    const exitPct = Math.round((Number(step.estimatedExitRate) || 0) * 100);
+
+    item.innerHTML = `
+      <div class="row">
+        <strong>Step ${step.step}: ${step.stepType || "page"}</strong>
+        <span>Exit ${exitPct}%</span>
+      </div>
+      <div class="row">
+        <span>${step.url || ""}</span>
+      </div>
+      <div class="funnel-bar"><span style="width:${exitPct}%;"></span></div>
+    `;
+
+    listEl.appendChild(item);
+  });
+}
+
 setDeferredVisibility(false);
 
 analyzeBtn.addEventListener("click", async () => {
   const url = document.getElementById("url").value.trim();
   const persona = document.getElementById("persona").value.trim();
+  const depth = Number(document.getElementById("depth").value) || 3;
 
   if (!url) {
     setStatus(["Please provide a website URL."]);
@@ -127,13 +147,13 @@ analyzeBtn.addEventListener("click", async () => {
   resultEl.classList.add("hidden");
   setDeferredVisibility(false);
 
-  setStatus(["Agent started...", "Fetching website...", "Analyzing..."]);
+  setStatus(["Agent started...", "Traversing funnel pages...", "Analyzing..."]);
 
   try {
     const response = await fetch("/analyze", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ url, persona })
+      body: JSON.stringify({ url, persona, depth })
     });
 
     const data = await response.json();
@@ -149,22 +169,24 @@ analyzeBtn.addEventListener("click", async () => {
 
     const issuesEl = document.getElementById("issues");
     issuesEl.innerHTML = "";
-    (data.issues || []).forEach((issue) => {
-      issuesEl.appendChild(createIssueNode(issue));
-    });
+    (data.issues || []).forEach((issue) => issuesEl.appendChild(createIssueNode(issue)));
 
     const improvementsEl = document.getElementById("improvements");
     improvementsEl.innerHTML = "";
     (data.improvements || []).forEach((item) => {
       const improvementText = formatImprovement(item);
-      if (improvementText) {
-        improvementsEl.appendChild(createLi(improvementText));
-      }
+      if (improvementText) improvementsEl.appendChild(createLi(improvementText));
     });
 
     document.getElementById("headline").textContent = data.rewrite?.headline || "—";
     document.getElementById("subheadline").textContent = data.rewrite?.subheadline || "—";
     document.getElementById("cta").textContent = data.rewrite?.cta || "—";
+
+    const finalProb = Number(data?.funnel?.finalConversionProbability);
+    document.getElementById("conversionProb").textContent = Number.isFinite(finalProb)
+      ? `Final conversion probability: ${finalProb}%`
+      : "Final conversion probability: —";
+    renderFunnelSteps(data?.funnel?.steps || []);
 
     const logsEl = document.getElementById("logs");
     logsEl.innerHTML = "";
