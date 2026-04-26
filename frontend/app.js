@@ -12,6 +12,26 @@ function createLi(text) {
   return li;
 }
 
+function createIssueItem(issue) {
+  const li = document.createElement("li");
+  const title = document.createElement("span");
+  title.className = "issue-title";
+  title.textContent = issue.title || "Untitled issue";
+
+  const impact = document.createElement("span");
+  const impactValue = (issue.impact || "Low").toLowerCase();
+  impact.className = `impact-badge impact-${impactValue}`;
+  impact.textContent = `${issue.impact || "Low"} impact`;
+
+  const details = document.createElement("span");
+  details.textContent = issue.suggestion || "";
+
+  li.appendChild(title);
+  li.appendChild(impact);
+  li.appendChild(details);
+  return li;
+}
+
 analyzeBtn.addEventListener("click", async () => {
   const url = document.getElementById("url").value.trim();
   const persona = document.getElementById("persona").value.trim();
@@ -45,7 +65,7 @@ analyzeBtn.addEventListener("click", async () => {
     const issuesEl = document.getElementById("issues");
     issuesEl.innerHTML = "";
     (data.issues || []).forEach((issue) => {
-      issuesEl.appendChild(createLi(`${issue.title} (${issue.impact}): ${issue.suggestion}`));
+      issuesEl.appendChild(createIssueItem(issue));
     });
 
     const improvementsEl = document.getElementById("improvements");

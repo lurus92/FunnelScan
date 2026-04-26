@@ -7,9 +7,14 @@
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
-    <main class="container">
-      <h1>FunnelScan</h1>
-      <p class="subtitle">AI CRO Audit Agent</p>
+    <main class="app-shell">
+      <section class="hero card">
+        <div>
+          <p class="eyebrow">AI Website Audit Agent</p>
+          <h1>FunnelScan</h1>
+          <p class="subtitle">Analyze any page and get conversion insights in seconds.</p>
+        </div>
+      </section>
 
       <section class="card form-card">
         <label>
@@ -22,34 +27,43 @@
           <input id="persona" type="text" placeholder="E-commerce shopper" />
         </label>
 
-        <button id="analyzeBtn">Analyze Website</button>
+        <button id="analyzeBtn">Start Analysis</button>
         <pre id="status" class="status">Idle</pre>
       </section>
 
-      <section id="result" class="card hidden">
-        <h2>Audit Report</h2>
-        <div class="score-wrap">
-          <span>Score</span>
-          <strong id="score">-</strong>
-        </div>
+      <section id="result" class="hidden results-grid">
+        <article class="card score-card">
+          <p class="eyebrow">FunnelScan Score</p>
+          <div class="score-wrap">
+            <strong id="score">-</strong>
+            <span>/100</span>
+          </div>
+          <p id="summary"></p>
+        </article>
 
-        <p id="summary"></p>
+        <article class="card">
+          <h2>Top Issues</h2>
+          <ul id="issues" class="styled-list"></ul>
+        </article>
 
-        <h3>Top Issues</h3>
-        <ul id="issues"></ul>
+        <article class="card">
+          <h2>Recommended Improvements</h2>
+          <ul id="improvements" class="styled-list"></ul>
+        </article>
 
-        <h3>Improvements</h3>
-        <ul id="improvements"></ul>
+        <article class="card">
+          <h2>Hero Rewrite</h2>
+          <div class="rewrite">
+            <p><strong>Headline</strong><span id="headline"></span></p>
+            <p><strong>Subheadline</strong><span id="subheadline"></span></p>
+            <p><strong>CTA</strong><span id="cta"></span></p>
+          </div>
+        </article>
 
-        <h3>Hero Rewrite</h3>
-        <div class="rewrite">
-          <p><strong>Headline:</strong> <span id="headline"></span></p>
-          <p><strong>Subheadline:</strong> <span id="subheadline"></span></p>
-          <p><strong>CTA:</strong> <span id="cta"></span></p>
-        </div>
-
-        <h3>Agent Logs</h3>
-        <ul id="logs"></ul>
+        <article class="card logs-card">
+          <h2>Agent Logs</h2>
+          <ul id="logs" class="styled-list"></ul>
+        </article>
       </section>
     </main>
 
