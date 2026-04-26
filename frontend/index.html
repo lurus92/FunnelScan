@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FunnelScan Agent</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="container">
+      <h1>FunnelScan</h1>
+      <p class="subtitle">AI CRO Audit Agent</p>
+
+      <section class="card form-card">
+        <label>
+          Website URL
+          <input id="url" type="url" placeholder="https://example.com" required />
+        </label>
+
+        <label>
+          Persona
+          <input id="persona" type="text" placeholder="E-commerce shopper" />
+        </label>
+
+        <button id="analyzeBtn">Analyze Website</button>
+        <pre id="status" class="status">Idle</pre>
+      </section>
+
+      <section id="result" class="card hidden">
+        <h2>Audit Report</h2>
+        <div class="score-wrap">
+          <span>Score</span>
+          <strong id="score">-</strong>
+        </div>
+
+        <p id="summary"></p>
+
+        <h3>Top Issues</h3>
+        <ul id="issues"></ul>
+
+        <h3>Improvements</h3>
+        <ul id="improvements"></ul>
+
+        <h3>Hero Rewrite</h3>
+        <div class="rewrite">
+          <p><strong>Headline:</strong> <span id="headline"></span></p>
+          <p><strong>Subheadline:</strong> <span id="subheadline"></span></p>
+          <p><strong>CTA:</strong> <span id="cta"></span></p>
+        </div>
+
+        <h3>Agent Logs</h3>
+        <ul id="logs"></ul>
+      </section>
+    </main>
+
+    <script src="./app.js"></script>
+  </body>
+</html>

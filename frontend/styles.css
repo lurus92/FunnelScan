@@ -1,0 +1,97 @@
+:root {
+  font-family: Inter, Arial, sans-serif;
+  color: #1f2937;
+  background: #f3f4f6;
+}
+
+body {
+  margin: 0;
+}
+
+.container {
+  max-width: 860px;
+  margin: 24px auto;
+  padding: 0 16px;
+}
+
+.subtitle {
+  margin-top: -8px;
+  color: #4b5563;
+}
+
+.card {
+  background: white;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 16px;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+}
+
+.form-card {
+  display: grid;
+  gap: 12px;
+}
+
+label {
+  display: grid;
+  gap: 6px;
+  font-weight: 600;
+}
+
+input {
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: 10px;
+  font-size: 14px;
+}
+
+button {
+  border: none;
+  border-radius: 8px;
+  padding: 10px 14px;
+  background: #2563eb;
+  color: white;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+button:disabled {
+  background: #93c5fd;
+  cursor: progress;
+}
+
+.status {
+  margin: 0;
+  white-space: pre-wrap;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 10px;
+}
+
+.score-wrap {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+  background: #eff6ff;
+  border-radius: 8px;
+  padding: 8px 12px;
+}
+
+#score {
+  font-size: 28px;
+}
+
+.hidden {
+  display: none;
+}
+
+ul {
+  padding-left: 20px;
+}
+
+.rewrite {
+  background: #f9fafb;
+  border-radius: 8px;
+  padding: 10px;
+}
