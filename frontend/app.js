@@ -3,6 +3,7 @@ const statusEl = document.getElementById("status");
 const resultEl = document.getElementById("result");
 const scoreGaugeEl = document.getElementById("scoreGauge");
 const scoreLabelEl = document.getElementById("scoreLabel");
+const deferredCards = Array.from(document.querySelectorAll(".deferred-card"));
 
 function setStatus(lines) {
   statusEl.textContent = lines.join("\n");
@@ -30,35 +31,33 @@ function getImpactLevel(impact) {
 
 function formatIssue(issue) {
   if (!issue || typeof issue !== "object") {
-    return { title: "", impact: "", suggestion: "" };
+    return { title: "", impact: "" };
   }
 
   return {
     title: issue.title || issue.issue || issue.problem || "Untitled issue",
-    impact: issue.impact || issue.severity || "Low",
-    suggestion: issue.suggestion || issue.fix || issue.recommendation || issue.comment || ""
+    impact: issue.impact || issue.severity || "Low"
   };
 }
 
 function createIssueNode(issue) {
-  const { title, impact, suggestion } = formatIssue(issue);
+  const { title, impact } = formatIssue(issue);
   const impactLevel = getImpactLevel(impact);
 
   const item = document.createElement("li");
   item.className = "issue-item";
   const colorMap = {
-    high: "var(--danger)",
-    medium: "var(--warning)",
-    low: "var(--success)"
+    high: "#ef4444",
+    medium: "#f87171",
+    low: "#fca5a5"
   };
-  item.style.borderLeftColor = colorMap[impactLevel] || "var(--warning)";
+  item.style.borderLeftColor = colorMap[impactLevel] || "#f87171";
 
   item.innerHTML = `
     <div class="issue-header">
       <span class="issue-title">${title}</span>
       <span class="impact-badge impact-${impactLevel}">${impact}</span>
     </div>
-    <div class="issue-body">${suggestion || "No suggestion provided."}</div>
   `;
 
   return item;
@@ -107,6 +106,14 @@ function updateGauge(score) {
   scoreLabelEl.textContent = label;
 }
 
+function setDeferredVisibility(visible) {
+  deferredCards.forEach((card) => {
+    card.classList.toggle("hidden", !visible);
+  });
+}
+
+setDeferredVisibility(false);
+
 analyzeBtn.addEventListener("click", async () => {
   const url = document.getElementById("url").value.trim();
   const persona = document.getElementById("persona").value.trim();
@@ -118,6 +125,7 @@ analyzeBtn.addEventListener("click", async () => {
 
   analyzeBtn.disabled = true;
   resultEl.classList.add("hidden");
+  setDeferredVisibility(false);
 
   setStatus(["Agent started...", "Fetching website...", "Analyzing..."]);
 
@@ -164,6 +172,7 @@ analyzeBtn.addEventListener("click", async () => {
 
     setStatus(data.logs?.length ? data.logs : ["Done."]);
     resultEl.classList.remove("hidden");
+    setDeferredVisibility(true);
   } catch (error) {
     setStatus(["Agent started...", `Failed: ${error.message}`]);
   } finally {

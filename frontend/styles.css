@@ -7,6 +7,8 @@
   --primary-dark: #4338ca;
   --muted: #64748b;
   --danger: #ef4444;
+  --danger-soft: #fee2e2;
+  --danger-mid: #fca5a5;
   --warning: #f59e0b;
   --success: #10b981;
 }
@@ -21,7 +23,7 @@ body {
 }
 
 .container {
-  max-width: 1200px;
+  max-width: 1240px;
   margin: 28px auto;
   padding: 0 18px 28px;
 }
@@ -116,18 +118,32 @@ button:disabled {
 .dashboard {
   display: grid;
   gap: 16px;
-  grid-template-columns: 320px 1fr;
+  grid-template-columns: 320px minmax(0, 1fr) minmax(0, 1fr);
 }
 
-.score-card,
-.rewrite-card,
-.logs-card {
+.score-card {
   grid-column: 1;
+  grid-row: 1 / span 2;
 }
 
-.issues-card,
+.issues-card {
+  grid-column: 2 / span 2;
+  grid-row: 1;
+}
+
 .improvements-card {
   grid-column: 2;
+  grid-row: 2;
+}
+
+.rewrite-card {
+  grid-column: 3;
+  grid-row: 2;
+}
+
+.logs-card {
+  grid-column: 1 / span 3;
+  grid-row: 3;
 }
 
 .gauge-wrap {
@@ -185,12 +201,6 @@ button:disabled {
   color: var(--muted);
 }
 
-.section-title-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
 ul {
   list-style: none;
   margin: 0;
@@ -205,8 +215,7 @@ ul {
 }
 
 .issue-item,
-.improvement-list li,
-.log-list li {
+.improvement-list li {
   border: 1px solid #e2e8f0;
   border-radius: 12px;
   padding: 12px 14px;
@@ -214,13 +223,12 @@ ul {
 }
 
 .issue-item {
-  border-left: 5px solid var(--warning);
+  border-left: 5px solid var(--danger-mid);
 }
 
 .issue-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+  display: grid;
+  justify-items: start;
   gap: 8px;
 }
 
@@ -237,23 +245,18 @@ ul {
 }
 
 .impact-high {
+  color: #7f1d1d;
+  background: #fecaca;
+}
+
+.impact-medium {
   color: #991b1b;
   background: #fee2e2;
 }
 
-.impact-medium {
-  color: #92400e;
-  background: #fef3c7;
-}
-
 .impact-low {
-  color: #065f46;
-  background: #d1fae5;
-}
-
-.issue-body {
-  margin-top: 6px;
-  color: #334155;
+  color: #b91c1c;
+  background: #fef2f2;
 }
 
 .rewrite {
@@ -280,7 +283,58 @@ ul {
 }
 
 .logs-card {
-  align-self: start;
+  background: #0b1020;
+  border-color: #1f2937;
+  color: #d1fae5;
+}
+
+.logs-card summary {
+  font-size: 18px;
+  font-weight: 700;
+  cursor: pointer;
+  color: #a7f3d0;
+}
+
+.log-list {
+  margin-top: 14px;
+  font-family: "SFMono-Regular", Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
+
+.log-list li {
+  border: 1px solid #1f2937;
+  border-radius: 8px;
+  padding: 10px 12px;
+  background: #111827;
+  color: #e2e8f0;
+}
+
+@media (max-width: 1120px) {
+  .dashboard {
+    grid-template-columns: 320px 1fr;
+  }
+
+  .issues-card {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .improvements-card,
+  .rewrite-card {
+    grid-column: 2;
+  }
+
+  .improvements-card {
+    grid-row: 2;
+  }
+
+  .rewrite-card {
+    grid-row: 3;
+  }
+
+  .logs-card {
+    grid-column: 1 / span 2;
+    grid-row: 4;
+  }
 }
 
 @media (max-width: 960px) {
@@ -294,5 +348,10 @@ ul {
   .rewrite-card,
   .logs-card {
     grid-column: 1;
+    grid-row: auto;
+  }
+
+  .score-card {
+    grid-row: auto;
   }
 }
