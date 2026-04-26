@@ -3,7 +3,9 @@ const statusEl = document.getElementById("status");
 const resultEl = document.getElementById("result");
 const scoreGaugeEl = document.getElementById("scoreGauge");
 const scoreLabelEl = document.getElementById("scoreLabel");
+const downloadJsonBtn = document.getElementById("downloadJsonBtn");
 const deferredCards = Array.from(document.querySelectorAll(".deferred-card"));
+let latestApiResponse = null;
 
 function setStatus(lines) {
   statusEl.textContent = lines.join("\n");
@@ -121,7 +123,7 @@ function renderFunnelSteps(steps) {
     item.innerHTML = `
       <div class="row">
         <strong>Step ${step.step}: ${step.stepType || "page"}</strong>
-        <span>Exit ${exitPct}%</span>
+        <span>Step exit ${exitPct}%</span>
       </div>
       <div class="row">
         <span>${step.url || ""}</span>
@@ -129,12 +131,37 @@ function renderFunnelSteps(steps) {
       <div class="row issue-row">
         <span>${issues}</span>
       </div>
-      <div class="funnel-bar"><span style="width:${exitPct}%;"></span></div>
+      <div class="funnel-bar"><span style="width:${Math.max(4, exitPct)}%;"></span></div>
     `;
 
     listEl.appendChild(item);
+
+    if (step.step < (steps || []).length) {
+      const between = document.createElement("li");
+      between.className = "funnel-between";
+      between.textContent = `Estimated exit rate to next step: ${exitPct}%`;
+      listEl.appendChild(between);
+    }
   });
 }
+
+function downloadLatestJson() {
+  if (!latestApiResponse) return;
+
+  const payload = JSON.stringify(latestApiResponse, null, 2);
+  const blob = new Blob([payload], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+  const isoDate = new Date().toISOString().slice(0, 19).replace(/[:T]/g, "-");
+  anchor.href = url;
+  anchor.download = `funnelscan-report-${isoDate}.json`;
+  document.body.appendChild(anchor);
+  anchor.click();
+  anchor.remove();
+  URL.revokeObjectURL(url);
+}
+
+downloadJsonBtn.addEventListener("click", downloadLatestJson);
 
 setDeferredVisibility(false);
 
@@ -149,6 +176,8 @@ analyzeBtn.addEventListener("click", async () => {
   }
 
   analyzeBtn.disabled = true;
+  downloadJsonBtn.disabled = true;
+  latestApiResponse = null;
   resultEl.classList.add("hidden");
   setDeferredVisibility(false);
 
@@ -162,6 +191,8 @@ analyzeBtn.addEventListener("click", async () => {
     });
 
     const data = await response.json();
+    latestApiResponse = data;
+    downloadJsonBtn.disabled = false;
 
     if (!response.ok) {
       throw new Error(data?.message || "Unknown error");

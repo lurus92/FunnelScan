@@ -108,6 +108,7 @@ function chooseTopLinks(links, currentUrl, visited) {
 
 function buildHeuristicFunnel({ persona, pages, requestedDepth }) {
   let retained = 1;
+  const firstPage = pages[0] || {};
 
   const funnelSteps = pages.map((page, index) => {
     const step = index + 1;
@@ -164,9 +165,9 @@ function buildHeuristicFunnel({ persona, pages, requestedDepth }) {
       "Shorten form length and number of decisions on conversion-critical pages."
     ],
     rewrite: {
-      headline: "Guide visitors through every funnel step with less friction",
-      subheadline: `Built for ${persona}: diagnose drop-offs, estimate conversion probability, and prioritize fixes fast.`,
-      cta: "Scan My Funnel"
+      headline: `Turn ${firstPage.title || "your first page"} into a stronger first impression`,
+      subheadline: `For ${persona}: clarify the value proposition on ${firstPage.url || "the landing page"} and guide users to the next step.`,
+      cta: "Start on This Page"
     }
   };
 }

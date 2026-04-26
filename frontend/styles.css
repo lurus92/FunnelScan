@@ -101,6 +101,12 @@ button:disabled {
   cursor: progress;
 }
 
+.secondary-btn {
+  margin-top: 10px;
+  background: #0f172a;
+  font-size: 14px;
+}
+
 .status {
   margin: 0;
   white-space: pre-wrap;
@@ -128,22 +134,22 @@ button:disabled {
 
 .issues-card {
   grid-column: 2 / span 2;
-  grid-row: 1;
+  grid-row: 2;
 }
 
 .improvements-card {
   grid-column: 2;
-  grid-row: 2;
+  grid-row: 3;
 }
 
 .rewrite-card {
   grid-column: 3;
-  grid-row: 2;
+  grid-row: 3;
 }
 
 .logs-card {
   grid-column: 1 / span 3;
-  grid-row: 3;
+  grid-row: 4;
 }
 
 .gauge-wrap {
@@ -315,7 +321,7 @@ ul {
 
   .issues-card {
     grid-column: 2;
-    grid-row: 1;
+    grid-row: 2;
   }
 
   .improvements-card,
@@ -324,16 +330,16 @@ ul {
   }
 
   .improvements-card {
-    grid-row: 2;
+    grid-row: 3;
   }
 
   .rewrite-card {
-    grid-row: 3;
+    grid-row: 4;
   }
 
   .logs-card {
     grid-column: 1 / span 2;
-    grid-row: 4;
+    grid-row: 5;
   }
 }
 
@@ -358,7 +364,7 @@ ul {
 
 .funnel-card {
   grid-column: 2 / span 2;
-  grid-row: 3;
+  grid-row: 1;
 }
 
 .conversion-probability {
@@ -405,4 +411,12 @@ ul {
   display: block;
   height: 100%;
   background: linear-gradient(90deg, #f97316 0%, #ef4444 100%);
+}
+
+.funnel-between {
+  text-align: center;
+  font-size: 12px;
+  color: #64748b;
+  font-weight: 700;
+  margin: 2px 0;
 }
