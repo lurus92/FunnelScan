@@ -35,13 +35,61 @@
         </div>
       </section>
 
-      <!-- Live streaming logs — visible during and after analysis -->
-      <section id="liveLogsPanel" class="card logs-live-card hidden">
-        <div class="logs-live-header">
-          <span class="logs-live-title">Agent Logs</span>
-          <span id="logsSpinner" class="logs-spinner"></span>
+      <!-- Progress stepper — visible during analysis, fades out when results arrive -->
+      <section id="progressStepper" class="card stepper-card hidden">
+        <div class="stepper">
+
+          <div class="step-item" id="step-crawl" data-state="pending">
+            <div class="step-circle">
+              <svg class="check-icon" viewBox="0 0 14 14" fill="none"><polyline points="2,7.5 5.5,11 12,3" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <span class="step-num">1</span>
+            </div>
+            <div class="step-body">
+              <strong>Crawling Website</strong>
+              <span id="sub-crawl">Fetching pages…</span>
+            </div>
+          </div>
+
+          <div class="step-conn" id="conn-1"></div>
+
+          <div class="step-item" id="step-persona" data-state="pending">
+            <div class="step-circle">
+              <svg class="check-icon" viewBox="0 0 14 14" fill="none"><polyline points="2,7.5 5.5,11 12,3" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <span class="step-num">2</span>
+            </div>
+            <div class="step-body">
+              <strong>Simulating Persona</strong>
+              <span id="sub-persona">—</span>
+            </div>
+          </div>
+
+          <div class="step-conn" id="conn-2"></div>
+
+          <div class="step-item" id="step-analyze" data-state="pending">
+            <div class="step-circle">
+              <svg class="check-icon" viewBox="0 0 14 14" fill="none"><polyline points="2,7.5 5.5,11 12,3" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <span class="step-num">3</span>
+            </div>
+            <div class="step-body">
+              <strong>AI Analysis</strong>
+              <span id="sub-analyze">Identifying pain points…</span>
+            </div>
+          </div>
+
+          <div class="step-conn" id="conn-3"></div>
+
+          <div class="step-item" id="step-report" data-state="pending">
+            <div class="step-circle">
+              <svg class="check-icon" viewBox="0 0 14 14" fill="none"><polyline points="2,7.5 5.5,11 12,3" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <span class="step-num">4</span>
+            </div>
+            <div class="step-body">
+              <strong>Generating Report</strong>
+              <span id="sub-report">Almost done…</span>
+            </div>
+          </div>
+
         </div>
-        <ul id="liveLogs" class="log-list"></ul>
       </section>
 
       <!-- Results — revealed after the SSE result event -->

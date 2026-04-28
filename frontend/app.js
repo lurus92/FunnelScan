@@ -1,13 +1,72 @@
-const analyzeBtn    = document.getElementById("analyzeBtn");
-const resultEl      = document.getElementById("result");
-const scoreGaugeEl  = document.getElementById("scoreGauge");
-const scoreLabelEl  = document.getElementById("scoreLabel");
+const analyzeBtn      = document.getElementById("analyzeBtn");
+const resultEl        = document.getElementById("result");
+const scoreGaugeEl    = document.getElementById("scoreGauge");
+const scoreLabelEl    = document.getElementById("scoreLabel");
 const downloadJsonBtn = document.getElementById("downloadJsonBtn");
-const liveLogsPanel = document.getElementById("liveLogsPanel");
-const liveLogsEl    = document.getElementById("liveLogs");
-const logsSpinner   = document.getElementById("logsSpinner");
+const stepperEl       = document.getElementById("progressStepper");
 
 let latestApiResponse = null;
+
+// ── Stepper ───────────────────────────────────────────────────────────────────
+
+const STEPS = ["crawl", "persona", "analyze", "report"];
+let currentStepIdx = -1;
+
+function stepEl(id)  { return document.getElementById(`step-${id}`); }
+function connEl(n)   { return document.getElementById(`conn-${n}`); }
+
+function setState(id, state) {
+  const el = stepEl(id);
+  if (el) el.dataset.state = state;
+}
+
+function advanceTo(idx) {
+  if (idx <= currentStepIdx) return;
+  for (let i = Math.max(0, currentStepIdx); i < idx; i++) {
+    setState(STEPS[i], "done");
+    const c = connEl(i + 1);
+    if (c) c.classList.add("done");
+  }
+  currentStepIdx = idx;
+  if (idx < STEPS.length) setState(STEPS[idx], "active");
+}
+
+function initStepper(persona) {
+  currentStepIdx = -1;
+  STEPS.forEach(id => setState(id, "pending"));
+  document.querySelectorAll(".step-conn").forEach(c => c.classList.remove("done"));
+  document.getElementById("sub-persona").textContent = persona || "General visitor";
+  stepperEl.classList.remove("hidden", "fading-out");
+  advanceTo(0);
+}
+
+function handleLogStep(message) {
+  const m = message.toLowerCase();
+  // Update crawl subtitle with the URL being fetched
+  if (m.includes("fetching html for ")) {
+    const url = message.replace(/.*fetching html for /i, "").trim();
+    document.getElementById("sub-crawl").textContent =
+      url.length > 48 ? url.slice(0, 48) + "…" : url;
+  }
+  // Step transitions
+  if (m.includes("aggregating"))        advanceTo(1);
+  if (m.includes("calling ai analysis")) advanceTo(2);
+  if (m.includes("generating final"))   advanceTo(3);
+}
+
+function completeStepper() {
+  // Tick the last step done immediately
+  STEPS.forEach((id, i) => {
+    setState(id, "done");
+    const c = connEl(i + 1);
+    if (c) c.classList.add("done");
+  });
+  // Brief pause so the user sees all green, then fade out
+  setTimeout(() => {
+    stepperEl.classList.add("fading-out");
+    setTimeout(() => stepperEl.classList.add("hidden"), 450);
+  }, 700);
+}
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -18,17 +77,12 @@ function getImpactLevel(impact) {
   return "low";
 }
 
-function formatIssue(issue) {
-  if (!issue || typeof issue !== "object") return { title: "", impact: "" };
-  return {
-    title: issue.title || issue.issue || issue.problem || "Untitled issue",
-    impact: issue.impact || issue.severity || "Low"
-  };
-}
-
 function createIssueNode(issue) {
-  const { title, impact } = formatIssue(issue);
-  const level = getImpactLevel(impact);
+  if (!issue || typeof issue !== "object") return null;
+  const title  = issue.title || issue.issue || issue.problem || "Untitled issue";
+  const impact = issue.impact || issue.severity || "Low";
+  const desc   = issue.description || issue.suggestion || "";
+  const level  = getImpactLevel(impact);
   const borderColors = { high: "#ef4444", medium: "#f59e0b", low: "#10b981" };
 
   const li = document.createElement("li");
@@ -39,6 +93,7 @@ function createIssueNode(issue) {
       <span class="issue-title">${title}</span>
       <span class="impact-badge impact-${level}">${impact}</span>
     </div>
+    ${desc ? `<p class="issue-desc">${desc}</p>` : ""}
   `;
   return li;
 }
@@ -66,15 +121,6 @@ function updateGauge(score) {
   scoreLabelEl.textContent = label;
 }
 
-// ── Live logs ─────────────────────────────────────────────────────────────────
-
-function appendLog(message) {
-  const li = document.createElement("li");
-  li.textContent = message;
-  liveLogsEl.appendChild(li);
-  liveLogsPanel.scrollTop = liveLogsPanel.scrollHeight;
-}
-
 // ── Funnel Visualization ──────────────────────────────────────────────────────
 
 const STEP_ICONS = { landing: "🏠", product: "📦", pricing: "💰", signup: "✏️", checkout: "🛒" };
@@ -90,30 +136,21 @@ function renderFunnelCanvas(steps) {
   canvas.innerHTML = "";
 
   (steps || []).forEach((step, index) => {
-    // Width = how many users are *entering* this step
-    // Step 1 always 100%; subsequent steps use the previous step's retainedProbability
     const entryRetained = index === 0 ? 1 : (Number(steps[index - 1].retainedProbability) || 1);
     const widthPct = Math.round(Math.max(28, entryRetained * 100));
-
     const exitPct  = Math.round((Number(step.estimatedExitRate) || 0) * 100);
     const score    = Number(step.pageScore) || 0;
     const fnColor  = scoreToColor(score);
 
     const painHtml = (step.painPoints || [])
       .slice(0, 3)
-      .map(p => {
-        const lvl = (p.impact || "low").toLowerCase();
-        return `<li class="fn-pain fn-pain-${lvl}">${p.title}</li>`;
-      })
+      .map(p => `<li class="fn-pain fn-pain-${(p.impact || "low").toLowerCase()}">${p.title}</li>`)
       .join("");
-
-    // Stagger the animation
-    const delay = `${index * 90}ms`;
 
     const wrap = document.createElement("div");
     wrap.className = "funnel-node-wrap";
     wrap.style.width = `${widthPct}%`;
-    wrap.style.animationDelay = delay;
+    wrap.style.animationDelay = `${index * 90}ms`;
     wrap.innerHTML = `
       <div class="funnel-node" style="--fn-color:${fnColor}">
         <div class="fn-header">
@@ -169,7 +206,10 @@ function renderResults(data) {
 
   const issuesEl = document.getElementById("issues");
   issuesEl.innerHTML = "";
-  (data.issues || []).forEach(issue => issuesEl.appendChild(createIssueNode(issue)));
+  (data.issues || []).forEach(issue => {
+    const node = createIssueNode(issue);
+    if (node) issuesEl.appendChild(node);
+  });
 
   const improvementsEl = document.getElementById("improvements");
   improvementsEl.innerHTML = "";
@@ -181,12 +221,12 @@ function renderResults(data) {
     improvementsEl.appendChild(li);
   });
 
-  document.getElementById("headline").textContent   = data.rewrite?.headline    || "—";
+  document.getElementById("headline").textContent    = data.rewrite?.headline    || "—";
   document.getElementById("subheadline").textContent = data.rewrite?.subheadline || "—";
   document.getElementById("cta").textContent         = data.rewrite?.cta         || "—";
 
-  const finalProb    = Number(data?.funnel?.finalConversionProbability);
-  const totalExit    = Number(data?.funnel?.totalEstimatedExitRate);
+  const finalProb     = Number(data?.funnel?.finalConversionProbability);
+  const totalExit     = Number(data?.funnel?.totalEstimatedExitRate);
   const selectedDepth = Number(data?.input?.depth || data?.funnel?.requestedDepth);
 
   document.getElementById("funnelDepthLabel").textContent = Number.isFinite(selectedDepth)
@@ -206,57 +246,55 @@ function renderResults(data) {
 
 analyzeBtn.addEventListener("click", () => {
   const url     = document.getElementById("url").value.trim();
-  const persona = document.getElementById("persona").value.trim();
+  const persona = document.getElementById("persona").value.trim() || "General website visitor";
   const depth   = Number(document.getElementById("depth").value) || 3;
 
   if (!url) {
-    liveLogsPanel.classList.remove("hidden");
-    appendLog("Please provide a website URL.");
+    alert("Please provide a website URL.");
     return;
   }
 
-  // Reset
   analyzeBtn.disabled = true;
   downloadJsonBtn.disabled = true;
   latestApiResponse = null;
   resultEl.classList.add("hidden");
-  liveLogsEl.innerHTML = "";
-  liveLogsPanel.classList.remove("hidden");
-  logsSpinner.classList.remove("done");
 
-  const params = new URLSearchParams({ url, persona: persona || "General website visitor", depth });
+  initStepper(persona);
+
+  const params = new URLSearchParams({ url, persona, depth });
   const es = new EventSource(`/analyze/stream?${params}`);
 
   es.addEventListener("log", (e) => {
     const { message } = JSON.parse(e.data);
-    appendLog(message);
+    handleLogStep(message);
   });
 
   es.addEventListener("result", (e) => {
     const data = JSON.parse(e.data);
     latestApiResponse = data;
     downloadJsonBtn.disabled = false;
-    logsSpinner.classList.add("done");
+    completeStepper();
     es.close();
     analyzeBtn.disabled = false;
-    renderResults(data);
+    // Wait for stepper to finish fading out before revealing results
+    setTimeout(() => renderResults(data), 1200);
   });
 
   es.addEventListener("failure", (e) => {
     try {
       const { message } = JSON.parse(e.data);
-      appendLog(`Error: ${message}`);
+      alert(`Analysis failed: ${message}`);
     } catch {
-      appendLog("Analysis failed. Please try again.");
+      alert("Analysis failed. Please try again.");
     }
-    logsSpinner.classList.add("done");
+    stepperEl.classList.add("hidden");
     analyzeBtn.disabled = false;
     es.close();
   });
 
   es.addEventListener("error", () => {
-    appendLog("Connection error. Please try again.");
-    logsSpinner.classList.add("done");
+    alert("Connection error. Please try again.");
+    stepperEl.classList.add("hidden");
     analyzeBtn.disabled = false;
     es.close();
   });
