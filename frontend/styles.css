@@ -127,6 +127,10 @@ button:disabled {
   grid-template-columns: 320px minmax(0, 1fr) minmax(0, 1fr);
 }
 
+.dashboard.hidden {
+  display: none;
+}
+
 .score-card {
   grid-column: 1;
   grid-row: 1 / span 2;
