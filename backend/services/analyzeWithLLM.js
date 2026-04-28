@@ -1,3 +1,5 @@
+const OpenAI = require("openai");
+
 function estimateStepDropOff(step, totalSteps) {
   const baseDrop = 0.16;
   const progressivePenalty = step * 0.04;
@@ -172,8 +174,96 @@ function buildHeuristicFunnel({ persona, pages, requestedDepth }) {
   };
 }
 
-async function analyzeWithLLM({ persona, pages, requestedDepth }) {
-  return buildHeuristicFunnel({ persona, pages, requestedDepth });
+async function analyzeWithLLM({ persona, pages, requestedDepth, apiKey }) {
+  if (!apiKey) {
+    console.log("No API key provided — using heuristic analysis.");
+    return buildHeuristicFunnel({ persona, pages, requestedDepth });
+  }
+
+  try {
+    const client = new OpenAI({ apiKey });
+
+    const pagesSummary = pages
+      .map(
+        (page, i) =>
+          `--- Step ${i + 1}: ${page.url}\nTitle: ${page.title || "No title"}\n\n${page.text.slice(0, 2500)}`
+      )
+      .join("\n\n");
+
+    const prompt = `You are a senior CRO (Conversion Rate Optimization) expert analyzing a multi-step user funnel.
+
+Persona simulated: ${persona}
+Pages analyzed: ${pages.length} (requested depth: ${requestedDepth})
+
+${pagesSummary}
+
+Your task: analyze this funnel from the perspective of the persona above and return a JSON report.
+
+Return ONLY a valid JSON object with this exact structure (no markdown, no extra text):
+{
+  "score": <integer 0-100, overall funnel CRO score>,
+  "summary": "<2-3 sentences summarizing the funnel's conversion strength and main bottleneck>",
+  "funnel": {
+    "requestedDepth": ${requestedDepth},
+    "analyzedSteps": ${pages.length},
+    "steps": [
+      {
+        "step": <step number starting at 1>,
+        "stepType": "<one of: landing, product, pricing, signup, checkout>",
+        "url": "<exact url of this step>",
+        "title": "<page title>",
+        "pageScore": <integer 0-100>,
+        "estimatedExitRate": <float 0.0-1.0, probability user exits at this step>,
+        "retainedProbability": <float 0.0-1.0, cumulative probability user is still in funnel>,
+        "painPoints": [
+          {
+            "title": "<short issue title>",
+            "impact": "<High|Medium|Low>",
+            "recommendation": "<specific actionable fix for this persona>"
+          }
+        ]
+      }
+    ],
+    "finalConversionProbability": <float, retainedProbability of last step * 100>,
+    "totalEstimatedExitRate": <float, 100 - finalConversionProbability>,
+    "overallRecommendations": ["<3-5 cross-step recommendations specific to this persona>"]
+  },
+  "issues": [
+    {
+      "title": "<[Step N] issue title>",
+      "description": "<what is wrong and why it matters for this persona>",
+      "impact": "<High|Medium|Low>",
+      "suggestion": "<concrete fix>"
+    }
+  ],
+  "improvements": ["<3-5 high-level strategic improvements>"],
+  "rewrite": {
+    "headline": "<rewritten headline for step 1, optimized for this persona>",
+    "subheadline": "<rewritten subheadline for step 1>",
+    "cta": "<rewritten CTA button text for step 1>"
+  }
+}
+
+Rules:
+- retainedProbability must be cumulative across steps (multiply previous retained by this step's retention rate)
+- finalConversionProbability = last step's retainedProbability × 100
+- issues: list the 5 most critical friction points across all steps, prefixed with [Step N]
+- rewrite: actually rewrite the hero for step 1 — not a description of what to do, but the real copy
+- Be specific to the persona and actual page content, not generic`;
+
+    const response = await client.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [{ role: "user", content: prompt }],
+      response_format: { type: "json_object" },
+      temperature: 0.3
+    });
+
+    const result = JSON.parse(response.choices[0].message.content);
+    return result;
+  } catch (err) {
+    console.error(`LLM call failed (${err.message}) — falling back to heuristic analysis.`);
+    return buildHeuristicFunnel({ persona, pages, requestedDepth });
+  }
 }
 
 module.exports = { analyzeWithLLM, chooseTopLinks };
